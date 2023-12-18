@@ -1,0 +1,43 @@
+/* Navbar.module.css */
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+  }
+  
+  .navbar h1 {
+    margin-left: 20px;
+  }
+  
+  .navbar ul {
+    display: flex;
+    list-style: none;
+    margin-right: 20px;
+  }
+  
+  .navbar li {
+    margin: 0 10px;
+  }
+  
+  .navbar a {
+    color: white;
+    text-decoration: none;
+  }
+  
+  .navbar button {
+    border: none;
+    background-color: transparent;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .vertical-line {
+    border-left: 1px solid white;
+    height: 20px;
+    margin: 0 10px;
+  }
+  

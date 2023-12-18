@@ -1,0 +1,52 @@
+/* Payment.module.css */
+
+.payment {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 20px;
+  }
+  
+  .payment h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  .payment form {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+  }
+  
+  .payment .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+  }
+  
+  .payment label {
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+  
+  .payment input, .payment select {
+    font-size: 16px;
+    padding: 5px;
+    border: 1px solid #333;
+  }
+  
+  .payment button {
+    border: none;
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+  
+  .payment .error {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+  
