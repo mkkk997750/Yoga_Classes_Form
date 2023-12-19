@@ -23,7 +23,7 @@ const request = require('request');
 const app = express();
 
 // Connect to MongoDB database
-mongoose.connect('mongodb://0.0.0.0:27017/yoga', { useNewUrlParser: true,  useUnifiedTopology: true
+mongoose.connect('mongodb+srv://tropnicates:BQZ7PIxJHKdroqex@fullstack-blog-project.otgvrqz.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true,  useUnifiedTopology: true
 // useFindAndModify: false 
 });
 const db = mongoose.connection;
