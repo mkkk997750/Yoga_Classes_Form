@@ -1,4 +1,4 @@
-// components/Login.js: This is the React component for the login form
+// components/Login.js
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -14,11 +14,11 @@ const Login = () => {
   // Define the state variable for the API response
   const [response, setResponse] = useState(null);
 
-  // Get the history object from React Router
-  const history = useNavigate();
+  // Get the navigate function from React Router
+  const navigate = useNavigate();
 
   // Define a function to handle the form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     // Prevent the default browser behavior
     e.preventDefault();
 
@@ -38,16 +38,14 @@ const Login = () => {
 
     // If the input is valid, make the API request
     if (isValid) {
-      axios
-        .post('/api/login', { email, password })
-        .then((res) => {
-          // Set the response state
-          setResponse(res.data);
-        })
-        .catch((err) => {
-          // Set the error state
-          setErrors(err.response.data);
-        });
+      try {
+        const res = await axios.post('/api/login', { email, password });
+        // Set the response state
+        setResponse(res.data);
+      } catch (err) {
+        // Set the error state
+        setErrors(err.response.data);
+      }
     }
   };
 
@@ -59,9 +57,9 @@ const Login = () => {
       localStorage.setItem('user', JSON.stringify(response.user));
 
       // Redirect to the home page
-      history('/');
+      navigate('/');
     }
-  }, [response, history]);
+  }, [response, navigate]);
 
   return (
     <div className="login">

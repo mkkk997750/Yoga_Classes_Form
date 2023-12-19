@@ -1,5 +1,4 @@
-// components/Navbar.js: This is the React component for the navigation bar
-
+// components/Navbar.js
 import React from 'react';
 import './Navbar.css';
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 const Navbar = () => {
   // Get the user's token and data from the local storage
   const token = localStorage.getItem('token');
-  //const user = JSON.parse(localStorage.getItem('user'));
+  const user = JSON.parse(localStorage.getItem('user'));
 
   // Get the history object from React Router
   const history = useNavigate();
@@ -33,7 +32,8 @@ const Navbar = () => {
               <Link to="/">Home</Link>
             </li>
             <li>
-              <button onClick={handleLogout}>Logout</button>
+              {/* Use Link for Logout instead of button */}
+              <Link to="/login" onClick={handleLogout}>Logout</Link>
             </li>
           </>
         ) : (

@@ -1,26 +1,23 @@
-import React from "react";
-import ReactDOM from 'react-dom';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import Navbar from './components/Navbar';
+// App.js or your route configuration file
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
-import Register from './components/Register';
 import Login from './components/Login';
+import Register from './components/Register';
+import Navbar from './components/Navbar';
 import Payment from './components/Payment';
 
-import "./App.css";
-
 function App() {
-  ReactDOM.render(
-    <BrowserRouter>
+  return (
+    <Router>
       <Navbar />
       <Routes>
-        <Route exact path="/" element={<Home/>} />
-        <Route path="register/*" element={<Register/>} />
-        <Route path="login/*" element={<Login/>} />
-        <Route path="pay/*" element={<Payment/>} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/pay" element={<Payment />} />
       </Routes>
-    </BrowserRouter>,
-    document.getElementById('root')
+    </Router>
   );
 }
 
