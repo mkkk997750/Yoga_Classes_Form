@@ -1,5 +1,3 @@
-// components/Register.js
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +14,7 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [response, setResponse] = useState(null);
 
-  const navigate = useNavigate();
+  const history = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -38,22 +36,35 @@ const Register = () => {
     if (!age) {
       setErrors((prev) => ({ ...prev, age: 'Please enter your age' }));
       isValid = false;
-    }
-    if (!batch) {
-      setErrors((prev) => ({ ...prev, batch: 'Please enter your batch' }));
+    } else if (age < 18 || age > 65) {
+      setErrors((prev) => ({ ...prev, age: 'Age limit is 18-65' }));
       isValid = false;
     }
-    if (!date || !selectedMonth) {
-      setErrors((prev) => ({ ...prev, date: 'Please enter your date of birth' }));
+    if (!batch) {
+      setErrors((prev) => ({ ...prev, batch: 'Please select a batch' }));
+      isValid = false;
+    }
+    if (!date) {
+      setErrors((prev) => ({ ...prev, date: 'Please enter your date' }));
+      isValid = false;
+    }
+    if (!selectedMonth) {
+      setErrors((prev) => ({ ...prev, month: 'Please select a month' }));
+      isValid = false;
+    } else if (parseInt(selectedMonth, 10) < 1 || parseInt(selectedMonth, 10) > 12) {
+      setErrors((prev) => ({ ...prev, month: 'Month should be between 1 and 12' }));
       isValid = false;
     }
 
     if (isValid) {
-      const formattedDate = `${date} ${selectedMonth}`;
       axios
-        .post('/api/register', { name, email, password, age, batch, dob: formattedDate })
-        .then((res) => setResponse(res.data))
-        .catch((err) => setErrors(err.response.data));
+        .post('/api/register', { name, email, password, age, batch, date, month: selectedMonth })
+        .then((res) => {
+          setResponse(res.data);
+        })
+        .catch((err) => {
+          setErrors(err.response.data);
+        });
     }
   };
 
@@ -61,9 +72,9 @@ const Register = () => {
     if (response) {
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
-      navigate('/');
+      history('/');
     }
-  }, [response, navigate]);
+  }, [response, history]);
 
   return (
     <div className="register">
@@ -71,7 +82,12 @@ const Register = () => {
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="name">Name</label>
-          <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} />
+          <input
+            type="text"
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
           {errors.name && <span className="error">{errors.name}</span>}
         </div>
         <div className="form-group">
@@ -96,48 +112,48 @@ const Register = () => {
         </div>
         <div className="form-group">
           <label htmlFor="age">Age</label>
-          <input type="number" id="age" value={age} onChange={(e) => setAge(e.target.value)} />
+          <input
+            type="number"
+            id="age"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+          />
           {errors.age && <span className="error">{errors.age}</span>}
         </div>
         <div className="form-group">
           <label htmlFor="batch">Batch</label>
-          <input
-            type="text"
+          <select
             id="batch"
             value={batch}
             onChange={(e) => setBatch(e.target.value)}
-          />
+          >
+            <option value="">Select a batch</option>
+            <option value="6-7AM">6-7AM</option>
+            <option value="7-8AM">7-8AM</option>
+            <option value="8-9AM">8-9AM</option>
+            <option value="5-6PM">5-6PM</option>
+          </select>
           {errors.batch && <span className="error">{errors.batch}</span>}
         </div>
         <div className="form-group">
-          <label htmlFor="dob">Date of Birth</label>
+          <label htmlFor="date">Date</label>
           <input
-            type="date"
-            id="dob"
+            type="text"
+            id="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
-          <select
+          {errors.date && <span className="error">{errors.date}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="month">Month</label>
+          <input
+            type="text"
+            id="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-          >
-            <option value="" disabled>
-              Month
-            </option>
-            <option value="January">January</option>
-            <option value="February">February</option>
-            <option value="March">March</option>
-            <option value="April">April</option>
-            <option value="May">May</option>
-            <option value="June">June</option>
-            <option value="July">July</option>
-            <option value="August">August</option>
-            <option value="September">September</option>
-            <option value="October">October</option>
-            <option value="November">November</option>
-            <option value="December">December</option>
-          </select>
-          {errors.date && <span className="error">{errors.date}</span>}
+          />
+          {errors.month && <span className="error">{errors.month}</span>}
         </div>
         <div className="form-group">
           <button type="submit">Register</button>

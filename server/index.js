@@ -1,42 +1,51 @@
+// const express = require("express");
+
+// const PORT = process.env.PORT || 3001;
+
+// const app = express();
+
+// app.get("/api", (req, res) => {
+//     res.json({ message: "Hello from server!" });
+//   });
+
+// app.listen(PORT, () => {
+//   console.log(`Server listening on ${PORT}`);
+// });
+
+
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const mysql = require('mysql2');
+const request = require('request');
 
 const app = express();
 
-// Create a MySQL connection pool
-const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'yoga',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+// Connect to MongoDB database
+mongoose.connect('mongodb://0.0.0.0:27017/yoga', { useNewUrlParser: true,  useUnifiedTopology: true
+// useFindAndModify: false 
 });
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  console.log('Connected to MongoDB');
+});
+
+// Define the user schema and model
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  password: String,
+  age: Number,
+  batch: String,
+  payment: Boolean
+});
+
+const User = mongoose.model('User', userSchema);
 
 // Use body-parser middleware to parse JSON requests
 app.use(bodyParser.json());
-
-// Define the user schema and model
-const userSchema = `
-CREATE TABLE IF NOT EXISTS users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  age INT NOT NULL,
-  batch VARCHAR(10) NOT NULL,
-  payment BOOLEAN NOT NULL DEFAULT 0
-)`;
-
-// Initialize the database schema
-pool.query(userSchema, (err) => {
-  if (err) throw err;
-  console.log('Users table created or already exists');
-});
 
 // Define the register endpoint
 app.post('/api/register', async (req, res) => {
@@ -54,8 +63,8 @@ app.post('/api/register', async (req, res) => {
     }
 
     // Check if the user already exists
-    const [existingUser] = await pool.promise().query('SELECT * FROM users WHERE email = ?', [email]);
-    if (existingUser.length > 0) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
@@ -64,32 +73,32 @@ app.post('/api/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create a new user
-    const newUser = {
+    const user = new User({
       name,
       email,
       password: hashedPassword,
       age,
       batch,
-      payment: false,
-    };
+      payment: false
+    });
 
     // Save the user to the database
-    const [result] = await pool.promise().query('INSERT INTO users SET ?', [newUser]);
+    await user.save();
 
     // Generate a token for the user
-    const token = jwt.sign({ id: result.insertId }, 'secret');
+    const token = jwt.sign({ id: user._id }, 'secret');
 
     // Send the token and user data to the front-end
     res.json({
       token,
       user: {
-        id: result.insertId,
-        name: newUser.name,
-        email: newUser.email,
-        age: newUser.age,
-        batch: newUser.batch,
-        payment: newUser.payment,
-      },
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        age: user.age,
+        batch: user.batch,
+        payment: user.payment
+      }
     });
   } catch (err) {
     // Handle any errors
@@ -98,10 +107,101 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// ... (similar modifications for login and pay endpoints)
+// Define the login endpoint
+app.post('/api/login', async (req, res) => {
+  try {
+    // Validate the user input
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please fill all the fields' });
+    }
 
-// Start the server on port 3000
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    // Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'User does not exist' });
+    }
+
+    // Verify the password
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Generate a token for the user
+    const token = jwt.sign({ id: user._id }, 'secret');
+
+    // Send the token and user data to the front-end
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        age: user.age,
+        batch: user.batch,
+        payment: user.payment
+      }
+    });
+  } catch (err) {
+    // Handle any errors
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
+
+// Define the pay endpoint:
+app.post('/api/pay', async (req, res) => {
+    try {
+      // Validate the user input
+      const { token, method, amount } = req.body;
+      if (!token || !method || !amount) {
+        return res.status(400).json({ message: 'Please fill all the fields' });
+      }
+      if (!['card', 'paypal', 'upi'].includes(method)) {
+        return res.status(400).json({ message: 'Invalid payment method' });
+      }
+      if (amount !== 500) {
+        return res.status(400).json({ message: 'Invalid payment amount' });
+      }
+  
+      // Verify the token
+      const decoded = jwt.verify(token, 'secret');
+      if (!decoded) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+  
+      // Find the user by id
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      // Call the CompletePayment() function with the user and payment details
+      const paymentResult = await CompletePayment(user, method, amount);
+  
+      // Handle the payment response
+      if (paymentResult.success) {
+        // Update the user's payment status in the database
+        user.payment = true;
+        await user.save();
+  
+        // Send a success message to the front-end
+        res.json({ message: 'Payment successful' });
+      } else {
+        // Send an error message to the front-end
+        res.status(400).json({ message: 'Payment failed' });
+      }
+    } catch (err) {
+      // Handle any errors
+      console.error(err);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  // Start the server on port 3000
+  app.listen(3000, () => {
+    console.log('Server running on port 3000');
+  });
+  
+

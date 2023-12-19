@@ -1,23 +1,24 @@
-// App.js or your route configuration file
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './components/Home';
-import Login from './components/Login';
-import Register from './components/Register';
+import React from "react";
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Home from './components/Home';
+import Register from './components/Register';
+import Login from './components/Login';
 import Payment from './components/Payment';
+
+import "./App.css";
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/pay" element={<Payment />} />
+        <Route path="register/*" element={<Register />} />
+        <Route path="login/*" element={<Login />} />
+        <Route path="pay/*" element={<Payment />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 
